@@ -1,7 +1,7 @@
-import { setItem } from "./utils";
+import { sendJwtToParent } from "./utils";
 
-const baseurl = process.env.NEXT_PUBLIC_AUTH_SERVICE_BASE_URL;
-const returnURL = process.env.NEXT_PUBLIC_RETURN_URL;
+const baseurl = process.env.AUTH_SERVICE_BASE_URL;
+
 const headers = {
   "Content-Type": "application/json",
 };
@@ -28,9 +28,7 @@ export const signIn = async (username: string, password: string, handleError: an
     }
 
     const { jwtToken } = await response.json();
-    setItem("JWT_TOKEN", jwtToken);
-
-    window.location.href = returnURL ? returnURL :'';
+    sendJwtToParent(jwtToken);
 
   } catch (e) {
     console.log("error--", e);
@@ -72,9 +70,7 @@ export const signup = async (
     }
 
     const { jwtToken } = await response.json();
-    setItem("JWT_TOKEN", jwtToken);
-
-    window.location.href = returnURL ? returnURL :'';
+    sendJwtToParent(jwtToken);
 
   } catch (e) {
     console.log("error--", e);
@@ -91,9 +87,8 @@ export const isUsernameExists = async (username: string) => {
     });
 
     if (!response.ok) {
-      const errorMessage = await response.text();
       throw new Error(
-        `HTTP error! Status: ${response.status}, Message: ${errorMessage}`
+        `HTTP error! Status: ${response.status}`
       );
     }
 
