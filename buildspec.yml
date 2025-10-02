@@ -14,9 +14,16 @@ phases:
       - npm run build
 
   post_build:
-    commands:
-      - echo "Uploading static files to S3..."
-      - aws s3 sync out/ s3://signin-frontend-bucket/ --delete
+  commands:
+    - echo "Fetching bucket name from CloudFormation outputs..."
+    - |
+      BUCKET_NAME=$(aws cloudformation describe-stacks \
+        --stack-name signin-frontend-stack \
+        --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
+        --output text)
+      echo "Uploading static files to S3 bucket: $BUCKET_NAME"
+      aws s3 sync out/ s3://$BUCKET_NAME/ --delete
+
 
 artifacts:
   files:

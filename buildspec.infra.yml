@@ -3,13 +3,15 @@ version: 0.2
 phases:
   build:
     commands:
-      - echo "Fetching AWS account and region..."
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-      - REGION=$AWS_REGION
-      - BUCKET_NAME="signin-frontend-${ACCOUNT_ID}-${REGION}"
-      - echo "Using bucket name- $BUCKET_NAME"
-      - echo "Deploying CloudFormation stack for signin-frontend..."
       - |
+        echo "Fetching AWS account and region..."
+        ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+        REGION=$AWS_REGION
+        BUCKET_NAME="signin-frontend-${ACCOUNT_ID}-${REGION}"
+        echo "Using bucket name: $BUCKET_NAME"
+
+      - |
+        echo "Deploying CloudFormation stack for signin-frontend..."
         aws cloudformation deploy \
           --template-file signin-frontend-stack.yml \
           --stack-name signin-frontend-stack \
@@ -18,8 +20,8 @@ phases:
 
   post_build:
     commands:
-      - echo "Stack deployment complete."
       - |
+        echo "Stack deployment complete."
         aws cloudformation describe-stacks \
           --stack-name signin-frontend-stack \
           --query "Stacks[0].Outputs" \
