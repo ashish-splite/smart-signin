@@ -7,8 +7,7 @@ phases:
       - ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
       - REGION=$(aws configure get region)
       - BUCKET_NAME="signin-frontend-${ACCOUNT_ID}-${REGION}"
-      - echo "Using bucket name: $BUCKET_NAME"
-
+      - echo "Using bucket name- $BUCKET_NAME"
       - echo "Deploying CloudFormation stack for signin-frontend..."
       - |
         aws cloudformation deploy \
