@@ -16,7 +16,7 @@ phases:
   post_build:
     commands:
       - echo "Uploading static files to S3..."
-      - aws s3 sync out/ s3://YOUR_BUCKET_NAME/ --delete
+      - aws s3 sync out/ s3://signin-frontend-bucket/ --delete
 
 artifacts:
   files:
