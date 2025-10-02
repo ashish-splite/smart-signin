@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation stack for signin-frontend static site"
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: signin-frontend-bucket-664607861413-ap-south-1
+    Description: Name of the S3 bucket for static site hosting
+
+Resources:
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowPublicRead
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+
+Outputs:
+  BucketName:
+    Value: !Ref FrontendBucket
+    Description: "Name of the S3 bucket"
+  WebsiteURL:
+    Value: !GetAtt FrontendBucket.WebsiteURL
+    Description: "Website endpoint"

@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo "Deploying CloudFormation stack for signin-frontend..."
+      - aws cloudformation deploy \
+          --template-file signin-frontend-stack.yaml \
+          --stack-name signin-frontend-stack \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --parameter-overrides BucketName=signin-frontend-bucket-664607861413-ap-south-1
+  post_build:
+    commands:
+      - echo "Stack deployment complete."
+      - aws cloudformation describe-stacks \
+          --stack-name signin-frontend-stack \
+          --query "Stacks[0].Outputs" \
+          --output table
