@@ -11,7 +11,7 @@ phases:
       - echo "Deploying CloudFormation stack for signin-frontend..."
       - |
         aws cloudformation deploy \
-          --template-file signin-frontend-stack.yaml \
+          --template-file signin-frontend-stack.yml \
           --stack-name signin-frontend-stack \
           --capabilities CAPABILITY_NAMED_IAM \
           --parameter-overrides BucketName=$BUCKET_NAME
