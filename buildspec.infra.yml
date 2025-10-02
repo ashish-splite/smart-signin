@@ -7,7 +7,7 @@ phases:
         echo "Fetching AWS account and region..."
         ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
         REGION=$AWS_REGION
-        BUCKET_NAME="signin-frontend-${ACCOUNT_ID}-${REGION}"
+        BUCKET_NAME="signin-frontend-bucket-${ACCOUNT_ID}-${REGION}"
         echo "Using bucket name: $BUCKET_NAME"
 
       - |

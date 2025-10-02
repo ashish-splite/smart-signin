@@ -20,6 +20,7 @@ Resources:
         BlockPublicPolicy: false
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
+      DeletionPolicy: Delete
 
   FrontendBucketPolicy:
     Type: AWS::S3::BucketPolicy
