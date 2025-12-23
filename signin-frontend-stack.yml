@@ -10,6 +10,7 @@ Parameters:
 Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
       BucketName: !Ref BucketName
       WebsiteConfiguration:
@@ -20,7 +21,6 @@ Resources:
         BlockPublicPolicy: false
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
-      DeletionPolicy: Delete
 
   FrontendBucketPolicy:
     Type: AWS::S3::BucketPolicy
