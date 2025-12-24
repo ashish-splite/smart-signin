@@ -13,7 +13,7 @@ phases:
 
   pre_build:
     commands:
-      - echo "--- PHASE 1: Validation (Fail Fast) ---"
+      - echo " --- PHASE 1 --- Validation (Fail Fast) ---"
       # 1. Check if the Infrastructure Stack exists
       - |
         STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].StackStatus" --output text 2>/dev/null || echo "NOT_FOUND")
@@ -34,23 +34,23 @@ phases:
           echo "ERROR: BucketName not found in stack outputs. Check your CDK CfnOutput code."
           exit 1
         fi
-      - echo "Validation successful. Target Bucket: $BUCKET_NAME"
+      - echo "Validation successful. Target Bucket $BUCKET_NAME"
 
   build:
     commands:
-      - echo "--- PHASE 2: Application Build ---"
+      - echo " --- PHASE 2 --- Application Build ---"
       - npm ci
       - npm run build
 
   post_build:
     commands:
-      - echo "--- PHASE 3: Deployment ---"
+      - echo " --- PHASE 3 --- Deployment ---"
       # Syncing 'out/' directory to S3
       - aws s3 sync out/ s3://$BUCKET_NAME/ --delete
       
       - echo "--------------------------------------------------"
       - echo "DEPLOYMENT SUCCESSFUL"
-      - echo "Website Link: $WEBSITE_URL"
+      - echo "Website Link $WEBSITE_URL"
       - echo "--------------------------------------------------"
 
 artifacts:
