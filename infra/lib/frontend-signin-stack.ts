@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
-export class InfraStack extends cdk.Stack {
+export class FrontendSigninStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -29,5 +29,13 @@ export class InfraStack extends cdk.Stack {
 
     // Note: CDK automatically handles the Bucket Policy when you set 
     // publicReadAccess: true, so you don't need to write the IAM JSON manually!
+
+    new cdk.CfnOutput(this, 'BucketName', {
+      value: bucket.bucketName,
+    });
+    
+    new cdk.CfnOutput(this, 'WebsiteURL', {
+      value: bucket.bucketWebsiteUrl,
+    });
   }
 }

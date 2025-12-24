@@ -1,34 +1,57 @@
 version: 0.2
 
+env:
+  variables:
+    STACK_NAME: "FrontendSigninStack"
+
 phases:
   install:
     runtime-versions:
-      nodejs: 18
+      nodejs: 20
     commands:
-      - echo "Installing dependencies..."
-      - npm ci
+      - echo "Checking build environment..."
+
+  pre_build:
+    commands:
+      - echo "--- PHASE 1: Validation (Fail Fast) ---"
+      # 1. Check if the Infrastructure Stack exists
+      - |
+        STATUS=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].StackStatus" --output text 2>/dev/null || echo "NOT_FOUND")
+        if [ "$STATUS" == "NOT_FOUND" ] || [[ "$STATUS" == *"ROLLBACK"* ]]; then
+          echo "ERROR: Stack '$STACK_NAME' is missing or in a failed state ($STATUS)."
+          echo "Please deploy your infrastructure (CDK) first."
+          exit 1
+        fi
+
+      # 2. Extract Bucket Name and URL from Stack Outputs
+      - echo "Fetching deployment targets from CloudFormation..."
+      - BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text)
+      - WEBSITE_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='WebsiteURL'].OutputValue" --output text)
+
+      # 3. Final safety check on variables
+      - |
+        if [ -z "$BUCKET_NAME" ] || [ "$BUCKET_NAME" == "None" ]; then
+          echo "ERROR: BucketName not found in stack outputs. Check your CDK CfnOutput code."
+          exit 1
+        fi
+      - echo "Validation successful. Target Bucket: $BUCKET_NAME"
 
   build:
     commands:
-      - echo "Building the Next.js app..."
+      - echo "--- PHASE 2: Application Build ---"
+      - npm ci
       - npm run build
 
   post_build:
     commands:
-      - echo "Fetching bucket name from CloudFormation outputs..."
-      - |
-        BUCKET_NAME=$(aws cloudformation describe-stacks \
-          --stack-name signin-frontend-stack \
-          --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
-          --output text)
-        WEBSITE_URL=$(aws cloudformation describe-stacks \
-          --stack-name signin-frontend-stack \
-          --query "Stacks[0].Outputs[?OutputKey=='WebsiteURL'].OutputValue" \
-          --output text)
-        echo "Uploading static files to S3 bucket: $BUCKET_NAME"
-        aws s3 sync out/ s3://$BUCKET_NAME/ --delete
-        echo "WEBSITE_URL : $WEBSITE_URL"
-
+      - echo "--- PHASE 3: Deployment ---"
+      # Syncing 'out/' directory to S3
+      - aws s3 sync out/ s3://$BUCKET_NAME/ --delete
+      
+      - echo "--------------------------------------------------"
+      - echo "DEPLOYMENT SUCCESSFUL"
+      - echo "Website Link: $WEBSITE_URL"
+      - echo "--------------------------------------------------"
 
 artifacts:
   files:
