@@ -1,28 +1,36 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing dependencies..."
+      - cd infra
+      # 'npm ci' is the industry standard for build servers
+      - npm ci
+  pre_build:
+    commands:
+      - echo "Preparing environment variables..."
+      # Dynamically fetch Account and Region
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+      - REGION=${AWS_REGION:-ap-south-1}
+      
+      - echo "Checking if CDK Bootstrap is required for Account $ACCOUNT_ID in $REGION..."
+      # Self-healing check for the CDKToolkit stack
+      - |
+        if ! aws cloudformation describe-stacks --stack-name CDKToolkit --region $REGION > /dev/null 2>&1; then
+          echo "CDKToolkit not found. Bootstrapping..."
+          npx cdk bootstrap aws://$ACCOUNT_ID/$REGION
+        else
+          echo "CDKToolkit already exists. Skipping bootstrap."
+        fi
   build:
     commands:
-      - |
-        echo "Fetching AWS account and region..."
-        ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-        REGION=$AWS_REGION
-        BUCKET_NAME="signin-frontend-bucket-${ACCOUNT_ID}-${REGION}"
-        echo "Using bucket name: $BUCKET_NAME"
-
-      - |
-        echo "Deploying CloudFormation stack for signin-frontend..."
-        aws cloudformation deploy \
-          --template-file signin-frontend-stack.yml \
-          --stack-name signin-frontend-stack \
-          --capabilities CAPABILITY_NAMED_IAM \
-          --parameter-overrides BucketName=$BUCKET_NAME
-
+      - echo "Starting CDK Deployment..."
+      - cd $CODEBUILD_SRC_DIR/infra
+      # Deploy all stacks without requiring manual y/n confirmation
+      - npx cdk deploy --all --require-approval never
   post_build:
     commands:
-      - |
-        echo "Stack deployment complete."
-        aws cloudformation describe-stacks \
-          --stack-name signin-frontend-stack \
-          --query "Stacks[0].Outputs" \
-          --output table
+      - echo "Infrastructure deployment successful."
